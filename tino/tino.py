@@ -11,14 +11,6 @@ from aioredis.stream import StreamReader
 from aioredis import create_redis_pool
 from asyncio.streams import StreamReaderProtocol
 
-MAX_CHUNK_SIZE = 65536
-OK = b"+OK\r\n"
-COMMAND_PING = b"PING"
-PONG = b"+PONG\r\n"
-COMMAND_QUIT = b"QUIT"
-COMMAND_AUTH = b"AUTH"
-BUILT_IN_COMMANDS = (COMMAND_PING, COMMAND_QUIT, COMMAND_AUTH)
-
 
 from typing import List
 import datetime
@@ -37,6 +29,15 @@ from types import GeneratorType
 from typing import Any, Callable, Dict, Type, Union
 from uuid import UUID
 from pydantic import BaseModel
+
+
+MAX_CHUNK_SIZE = 65536
+OK = b"+OK\r\n"
+COMMAND_PING = b"PING"
+PONG = b"+PONG\r\n"
+COMMAND_QUIT = b"QUIT"
+COMMAND_AUTH = b"AUTH"
+BUILT_IN_COMMANDS = (COMMAND_PING, COMMAND_QUIT, COMMAND_AUTH)
 
 
 def isoformat(o):
@@ -89,7 +90,13 @@ class Command:
     def __init__(self, command, signature, return_type, handler):
         self.command = command
         self.signature = signature
-        self.num_args = len([arg_name for arg_name, arg_type in self.signature if arg_type not in (Auth, AuthRequired, ConnState)])
+        self.num_args = len(
+            [
+                arg_name
+                for arg_name, arg_type in self.signature
+                if arg_type not in (Auth, AuthRequired, ConnState)
+            ]
+        )
         self.handler = handler
         self.return_type = return_type
 
@@ -150,6 +157,7 @@ class Auth:
     def __init__(self, auth_state):
         self.value = auth_state
 
+
 class AuthRequired:
     def __init__(self, auth_state):
         self.value = auth_state
@@ -173,7 +181,9 @@ class Tino:
     def command(self, f):
         name = f.__name__.upper().encode("utf8")
         if name in BUILT_IN_COMMANDS:
-            raise Exception(f'Creating a command with name "{f.__name__}" is not allowed because it conflicts with a built in command.')
+            raise Exception(
+                f'Creating a command with name "{f.__name__}" is not allowed because it conflicts with a built in command.'
+            )
         sig = inspect.signature(f)
         ts_ = [(k, v.annotation) for k, v in sig.parameters.items()]
         self.commands[name] = Command(name, ts_, sig.return_annotation, f)
@@ -192,7 +202,7 @@ class Tino:
             state = ConnState(self.state_factory())
         else:
             state = ConnState(None)
-        
+
         auth = Auth(None)
 
         try:
@@ -294,6 +304,7 @@ class Tino:
         klass = make_client_class(self)
         return klass()
 
+
 class Client:
     def __init__(self, redis=None):
         self.redis = redis
@@ -313,12 +324,14 @@ class Client:
 def make_client_class(api: Tino):
     methods = {}
     for name, command in api.commands.items():
+
         async def call(self, *args, command=command):
             packed = [pack_msgpack(arg) for arg in args]
             result = await self.redis.execute(command.command, *packed)
             r = msgpack.unpackb(result)
             if command.return_type != None:
                 return parse_obj_as(command.return_type, r)
+
         methods[name.lower().decode("utf8")] = call
     return type("BoundClient", (Client,), methods)
 

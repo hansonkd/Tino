@@ -40,6 +40,7 @@ class Note(BaseModel):
 
 app = Tino()
 
+
 @app.on_startup
 async def startup():
     await database.connect()
@@ -48,6 +49,7 @@ async def startup():
 @app.on_shutdown
 async def shutdown():
     await database.disconnect()
+
 
 @app.command
 async def read_notes() -> List[Note]:
@@ -64,4 +66,4 @@ async def create_note(note: NoteIn) -> Note:
 
 
 if __name__ == "__main__":
-	app.run()
+    app.run()

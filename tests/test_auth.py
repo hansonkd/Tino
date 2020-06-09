@@ -18,6 +18,7 @@ api = Tino(auth_func=authorize)
 async def echo(a: int, auth: AuthRequired) -> int:
     return a
 
+
 @api.command
 async def echo_auth(auth: Auth) -> Optional[bytes]:
     return auth.value
@@ -45,11 +46,13 @@ async def test_api_wrong_password():
             pass
     assert str(e.value) == "PERMISSION_DENIED"
 
+
 @pytest.mark.asyncio
 async def test_api_echo_auth():
     async with api.test_server_with_client(password="test123") as client:
         auth_key = await client.echo_auth()
         assert auth_key == b"test123"
+
 
 @pytest.mark.asyncio
 async def test_api_echo_auth_none():

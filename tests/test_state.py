@@ -9,6 +9,7 @@ from aioredis import ReplyError
 def state_factory():
     return 0
 
+
 api = Tino(state_factory=state_factory)
 
 
