@@ -67,6 +67,8 @@ ENCODERS_BY_TYPE: Dict[Type[Any], Callable[[Any], Any]] = {
 def default(obj):
     if isinstance(obj, BaseModel):
         return obj.dict()
+    if hasattr(obj, "__dict__"):
+        return dict(obj)
 
     encoder = ENCODERS_BY_TYPE.get(type(obj))
     if encoder:
@@ -165,6 +167,8 @@ class Tino:
         self.commands = {}
         self.auth_func = auth_func
         self.state_factory = state_factory
+        self.startup_funcs = []
+        self.shutdown_funcs = []
 
     def command(self, f):
         name = f.__name__.upper().encode("utf8")
@@ -173,6 +177,14 @@ class Tino:
         sig = inspect.signature(f)
         ts_ = [(k, v.annotation) for k, v in sig.parameters.items()]
         self.commands[name] = Command(name, ts_, sig.return_annotation, f)
+        return f
+
+    def on_startup(self, f):
+        self.startup_funcs.append(f)
+        return f
+
+    def on_shutdown(self, f):
+        self.shutdown_funcs.append(f)
         return f
 
     async def handle_connection(self, reader, writer):
@@ -244,30 +256,43 @@ class Tino:
     @asynccontextmanager
     async def test_server_with_client(self, host="localhost", port=1531, password=None):
         client_class = make_client_class(self)
-        server = await self.create_server(host=host, port=port)
+        server = await self.start_server()
         client = client_class()
         try:
             await client.connect(f"redis://{host}:{port}", password=password)
             yield client
         finally:
-            await client.close()
-            server.close()
-            await server.wait_closed()
+            client.close()
+            await client.wait_closed()
+            await self.stop_server(server)
+
+    async def start_server(self, loop=None, **kwargs):
+        server = await self.create_server(loop=loop, **kwargs)
+        for f in self.startup_funcs:
+            await f()
+        return server
+
+    async def stop_server(self, server):
+        server.close()
+        await server.wait_closed()
+        for f in self.shutdown_funcs:
+            await f()
 
     def run(self, **kwargs):
         loop = asyncio.get_event_loop()
 
-        coro = self.create_server(loop=loop, **kwargs)
-        server = loop.run_until_complete(coro)
+        server = loop.run_until_complete(self.start_server(loop=loop, **kwargs))
         try:
             loop.run_forever()
         except KeyboardInterrupt:
             pass
 
-        server.close()
-        loop.run_until_complete(server.wait_closed())
+        loop.run_until_complete(self.stop_server(server))
         loop.close()
 
+    def client(self):
+        klass = make_client_class(self)
+        return klass()
 
 class Client:
     def __init__(self, redis=None):
@@ -279,6 +304,9 @@ class Client:
     async def close(self):
         if self.redis:
             self.redis.close()
+
+    async def wait_closed(self):
+        if self.redis:
             await self.redis.wait_closed()
 
 
