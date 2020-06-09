@@ -166,7 +166,7 @@ async def simple_echo_client_tino_simple(ntimes):
 
 async def simple_echo_client_tino_simple_concurrent(ntimes):
 	client = client_class()
-	await client.connect(minsize=10)
+	await client.connect(minsize=100, maxsize=100)
 	t1 = time.time()
 
 	futures = []
@@ -202,7 +202,7 @@ async def simple_echo_client_fapi_simple(ntimes):
 		return time.time() - t1
 
 async def simple_echo_client_fapi_simple_concurrent(ntimes):
-	async with httpx.AsyncClient(timeout=100) as client:
+	async with httpx.AsyncClient(timeout=300) as client:
 		t1 = time.time()
 
 		futures = []
