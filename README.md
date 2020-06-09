@@ -7,6 +7,12 @@ Tino is a framework to remotely call functions. It builds both clients and serve
 
 Tradidtional APIs are JSON over HTTP. Tino is Msgpack over the Redis Serialization Protocol. This makes it go faster, use less bandwidth, and its binary format easier to understand.
 
+### Highlights
+
+* Redis Protocol
+* MessagePack Serialization
+* Pydantic for automatically parsing rich datastructures
+* Fast. Up to 20x faster than the fastest HTTP Python framework.
 
 ### Does Tino use Redis?
 
@@ -34,12 +40,16 @@ Tino follows closely the design of [FastAPI](https://fastapi.tiangolo.com/). Typ
 ```python
 # server.py
 from tino import Tino
+from pydantic import BaseModel
 
 app = Tino()
 
+class NumberInput(BaseModel):
+    value: int
+
 @app.command
-def add(a: int, b: int) -> int:
-    return a + b
+def add(a: int, b: NumberInput) -> int:
+    return a + b.value
 
 if __name__ == "__main__":
     app.run()
@@ -52,13 +62,13 @@ Or you can use Tino's builtin high-performance client:
 ```python
 # client.py
 import asyncio
-from server import app # import the app from above
+from server import app, NumberInput # import the app from above
 
 async def go():
     client = app.client()
     await client.connect()
 
-    three = await client.add(1, 2)
+    three = await client.add(1, NumberInput(value=2))
 
     client.close()
     await client.wait_closed()
