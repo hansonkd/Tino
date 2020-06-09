@@ -1,15 +1,21 @@
 language: python
 python:
-  - "pypy3"
-  - "3.6"
-  - "3.7"
-  - "3.8"
-  - "3.8-dev"  # 3.8 development branch
-  - "nightly"  # nightly build
-
+- pypy3
+- '3.6'
+- '3.7'
+- '3.8'
+- 3.8-dev
+- nightly
 install:
-  - pip install .
-  - pip install pytest
-
+- pip install .
+- pip install pytest
 script:
-  - pytest
+- pytest
+deploy:
+  provider: pypi
+  username: hansonkd
+  skip_existing: true
+  on:
+    branch: master
+  password:
+    secure: cne/3OFCyrZLJO8sHhxgVgKMlg/1uFU9G5vdPemseor2TTj/nzzEFz7lONMR5uFYS16Skf2YcVBQm/Er7AIzW4U+F7sJAiBHn7XedJqOAsqXvgvc/lEORFWRM6o4t4gR4s4CqR7LjLkS+m9kRue9qbsnWwJdgoF/Lz4Rjoy66MO/sH48QGhp7M2MVCChxqggYciohoMXO3BpbbMBS8l5C1re38gezi/9fT/qvpRVi8F5/WTfL4UaARjPXgxC13CHin1GmWKKg5kzjkMpJG6u4n1W15TX1NafK5AbFhKkkBCujdQ5jFMS4Nd0EAg2T3hiZTJqYZCdUiVBzYTmiw3NKOeNNp4rE0cP3COXAoo3/CM7U6lv8cSZKz1NSyodosYhRUG5n+i4CkId9q8pv3a2Pe+oOyhfC+6mGgmuuwTDMvkNG5erOF65yDaMbtlBrt7glnZd+U82OMerwZH+0xP55S/L4s6awQDLW4gnNBEqzLJ4ahQTYczl+mItOfZyZRsL5sdhz30ZsJZAhtHJFqqGy1DHckuoub8mRfFDVcbVtKmfe+3I72D4t5TOBx6CeQpiKeZY9amsF/ZhZwu7ih8FG064sxEaycm8Z4mJgLi112I1RDYsMlt71pY5Xm7ooDNJkYLIPObnEcqFxMBVidG11V6yrGDG/cvYt9ymKvkxoFs=

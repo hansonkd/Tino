@@ -2,7 +2,7 @@ import asyncio
 import inspect
 import msgpack
 import json
-from contextlib import asynccontextmanager
+# from contextlib import asynccontextmanager
 
 from pydantic import ValidationError
 from pydantic.tools import parse_obj_as
@@ -263,18 +263,18 @@ class Tino:
             factory, host or self.host, port or self.port, **kwargs
         )
 
-    @asynccontextmanager
-    async def test_server_with_client(self, host="localhost", port=1531, password=None):
-        client_class = make_client_class(self)
-        server = await self.start_server()
-        client = client_class()
-        try:
-            await client.connect(f"redis://{host}:{port}", password=password)
-            yield client
-        finally:
-            client.close()
-            await client.wait_closed()
-            await self.stop_server(server)
+    # @asynccontextmanager
+    # async def test_server_with_client(self, host="localhost", port=1531, password=None):
+    #     client_class = make_client_class(self)
+    #     server = await self.start_server()
+    #     client = client_class()
+    #     try:
+    #         await client.connect(f"redis://{host}:{port}", password=password)
+    #         yield client
+    #     finally:
+    #         client.close()
+    #         await client.wait_closed()
+    #         await self.stop_server(server)
 
     async def start_server(self, loop=None, **kwargs):
         server = await self.create_server(loop=loop, **kwargs)

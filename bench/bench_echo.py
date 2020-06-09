@@ -221,12 +221,13 @@ async def simple_echo_client_fapi_complex(ntimes):
 NUM_TIMES = 100000
 NUM_CONCURRENT = multiprocessing.cpu_count()
 if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
     if sys.argv[1] == "tino_client_simple":
-        print(asyncio.run(simple_echo_client_tino_simple(NUM_TIMES)))
+        print(loop.run_until_complete(simple_echo_client_tino_simple(NUM_TIMES)))
     elif sys.argv[1] == "tino_client_simple_concurrent":
-        print(asyncio.run(simple_echo_client_tino_simple_concurrent(NUM_TIMES)))
+        print(loop.run_until_complete(simple_echo_client_tino_simple_concurrent(NUM_TIMES)))
     elif sys.argv[1] == "tino_client_complex":
-        print(asyncio.run(simple_echo_client_tino_complex(NUM_TIMES)))
+        print(loop.run_until_complete(simple_echo_client_tino_complex(NUM_TIMES)))
     elif sys.argv[1] == "tino_server":
         api.run()
     elif sys.argv[1] == "tino_server_uvloop":
@@ -235,11 +236,11 @@ if __name__ == "__main__":
         uvloop.install()
         api.run()
     elif sys.argv[1] == "fapi_client_simple":
-        print(asyncio.run(simple_echo_client_fapi_simple(NUM_TIMES)))
+        print(asyncio.run_until_complete(simple_echo_client_fapi_simple(NUM_TIMES)))
     elif sys.argv[1] == "fapi_client_simple_concurrent":
-        print(asyncio.run(simple_echo_client_fapi_simple_concurrent(NUM_TIMES)))
+        print(asyncio.run_until_complete(simple_echo_client_fapi_simple_concurrent(NUM_TIMES)))
     elif sys.argv[1] == "fapi_client_complex":
-        print(asyncio.run(simple_echo_client_fapi_complex(NUM_TIMES)))
+        print(asyncio.run_until_complete(simple_echo_client_fapi_complex(NUM_TIMES)))
     elif sys.argv[1] == "fapi_server":
         import uvicorn
 
