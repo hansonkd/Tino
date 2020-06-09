@@ -51,7 +51,7 @@ setup(
     install_requires=[
         "pydantic>=1.5.1",
         "msgpack>=1.0.0",
-        "redis>=3.5.3",
+        "aioredis>=1.3.1",
         'aiocontextvars;python_version<"3.7"',
     ],
     classifiers=[
