@@ -36,7 +36,7 @@ MessagePack paired with RESP means that you can implement the entire stack, prot
 
 ### The Basics
 
-Tino follows closely the design of [FastAPI](https://fastapi.tiangolo.com/). Type annotations are required for both arguments and return values so that values can automatically be parsed and serialized. In Redis all commands are arrays. The position of your argument in the signature of the function matches the position of the string array of the redis command. Tino commands can not contain keyword arguments.
+Tino follows closely the design of [FastAPI](https://fastapi.tiangolo.com/). Type annotations are required for both arguments and return values so that values can automatically be parsed and serialized. In Redis all commands are arrays. The position of your argument in the signature of the function matches the position of the string array of the redis command. Tino commands can not contain keyword arguments. Tino will automatically fill in and parse Pydantic models.
 
 ```python
 # server.py
