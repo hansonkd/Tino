@@ -13,6 +13,7 @@ Tradidtional APIs are JSON over HTTP. Tino is Msgpack over the Redis Serializati
 * MessagePack Serialization
 * Pydantic for automatically parsing rich datastructures
 * Fast. Up to 20x faster than the fastest HTTP Python framework.
+* Small. Under 500 lines of code.
 
 ### Does Tino use Redis?
 
