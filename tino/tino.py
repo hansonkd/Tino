@@ -355,7 +355,7 @@ class Tino:
         kwargs.setdefault("host", "localhost")
         kwargs.setdefault("port", 7534)
 
-        config = uvicorn.Config(self,  proxy_headers=False, interface="tino", **kwargs)
+        config = uvicorn.Config(self,  proxy_headers=False, interface="tino", log_level="warning", **kwargs)
         server = Server(config=config)
 
         if not config.loaded:
@@ -370,16 +370,12 @@ class Tino:
         client = client_class()
 
         try:
-            print("Connecting")
             await client.connect(f"redis://{config.host}:{config.port}", password=password)
             yield client
         finally:
-            print("Closing")
             await server.shutdown(sockets=None)
-            print("Client")
             client.close()
             await client.wait_closed()
-            print("Client Closed")
             
 
     # async def start_server(self, loop=None, **kwargs):

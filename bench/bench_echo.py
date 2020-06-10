@@ -143,7 +143,7 @@ async def fapi_echo_simple(a: str = Body(...)) -> str:
 
 async def simple_echo_client_tino_simple(ntimes):
     client = client_class()
-    await client.connect()
+    await client.connect(minsize=1, maxsize=1)
     t1 = time.time()
     for _ in range(ntimes):
         await client.tino_echo_simple(simple_string)
@@ -154,7 +154,7 @@ async def simple_echo_client_tino_simple(ntimes):
 
 async def simple_echo_client_tino_simple_concurrent(ntimes):
     client = client_class()
-    await client.connect(minsize=100, maxsize=100)
+    await client.connect(minsize=10, maxsize=10)
     t1 = time.time()
 
     futures = []
@@ -168,7 +168,7 @@ async def simple_echo_client_tino_simple_concurrent(ntimes):
 
 async def simple_echo_client_tino_complex_concurrent(ntimes):
     client = client_class()
-    await client.connect(minsize=100, maxsize=100)
+    await client.connect(minsize=10, maxsize=10)
     t1 = time.time()
 
     futures = []
@@ -274,7 +274,7 @@ async def simple_echo_client_fapi_complex(ntimes):
         return time.time() - t1
 
 
-NUM_TIMES = 100 * 1000
+NUM_TIMES = 10 * 1000
 NUM_CONCURRENT = multiprocessing.cpu_count()
 if __name__ == "__main__":
     import uvloop
