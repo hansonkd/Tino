@@ -11,5 +11,5 @@ class Config(uvicorn.Config):
         kwargs.setdefault("interface", "tino")
         kwargs.setdefault("server_name", "Tino")
         kwargs.setdefault("protocol_name", "redis")
-        kwargs.setdefault("protocol_class", protocol_factory)
+        kwargs.setdefault("http", protocol_factory)
         super().__init__(*args, **kwargs)
