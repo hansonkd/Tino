@@ -35,6 +35,12 @@ It is fast, can enable zero-copy string and bytes decoding, and the most importa
 
 MessagePack paired with RESP means that you can implement the entire stack, protocol and serialization, by yourself from scratch if you needed to without too much trouble. And it will be fast.
 
+
+### Uvicorn
+
+Tino is built on the popular ASGI server Uvicorn. Its still a bit of a work in progress as Tino is NOT an ASGI framework so we get some warnings, but things are working. See [run_tino_multi.py](https://github.com/hansonkd/Tino/blob/master/bench/run_tino_multi.py) for an example of passing Uvicorn arguments. SSL and `workers` are working but I wouldn't expect too many other config options to work.
+
+
 ### The Basics
 
 Tino follows closely the design of [FastAPI](https://fastapi.tiangolo.com/). Type annotations are required for both arguments and return values so that values can automatically be parsed and serialized. In Redis all commands are arrays. The position of your argument in the signature of the function matches the position of the string array of the redis command. Tino commands can not contain keyword arguments. Tino will automatically fill in and parse Pydantic models.
@@ -206,11 +212,6 @@ async def create_note(note: NoteIn) -> Note:
 if __name__ == "__main__":
     app.run()
 ```
-
-### Uvicorn
-
-Tino is built on the popular ASGI server Uvicorn. Its still a bit of a work in progress as Tino is NOT an ASGI framework so we get some warnings, but things are working. See [run_tino_multi.py](https://github.com/hansonkd/Tino/blob/master/bench/run_tino_multi.py) for an example of passing Uvicorn arguments. SSL and `workers` are working but I wouldn't expect too many other config options to work.
-
 
 ### Should I use Tino in Production?
 
