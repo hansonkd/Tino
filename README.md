@@ -214,7 +214,7 @@ Tino is built on the popular ASGI server Uvicorn. Its still a bit of a work in p
 
 ### Should I use Tino in Production?
 
-Its not ready for public consumption at the moment, but if you want my help to run it, just drop me a line.
+Its not ready for public consumption at the moment, but if you want my help to run it, just drop me a line and we will make it happen.
 
 
 
@@ -226,9 +226,12 @@ Its probably easiest to deploy Tino behind a TCP loadbalancer that already suppo
 
 This is run with uvicorn as a single worker. `httpx` seemed to be a major point of performance problems so I also benchmarked against `ab` (apache benchmark). However, `httpx` results are typical of what you would see if you were using python-to-python communication.
 
-This is a micro benchmark of echoing a 404 character unicode string of emojis.
+`httpx` is abysmal at concurrent requests. Anything over a few thousand and it slows to a crawl. To test multiple connections, I instead chained together the single connection bench with the unix operator `&` to execute 100 scripts in parrellel. 
 
-<img width="934" alt="Screen Shot 2020-06-09 at 10 38 45 PM" src="https://user-images.githubusercontent.com/496914/84231198-72764980-aaa2-11ea-971d-fc4146a0dffc.png">
+`tino` client did not suffer the same fate and scaled to handle hundreds of thousands of tasks with ease. However, there were some slight performance gains from chaining together 10 processses of 10 connections.
+
+This is a micro benchmark of echoing a 1234 character unicode string of emojis.
+<img width="1229" alt="Screen Shot 2020-06-10 at 12 54 54 AM" src="https://user-images.githubusercontent.com/496914/84242030-1c5ed180-aab5-11ea-9286-fc26df0f4d72.png">
 
 More comprehensive benchmarks of multiple workers, different content sizes, requiring authorization would also be good to have. However, these are contrived and strictly meant to show the overhead of the protocol and serializers. 
 ### Coming Soon
