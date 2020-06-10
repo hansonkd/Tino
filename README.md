@@ -225,7 +225,7 @@ This is a micro benchmark of echoing a 404 character unicode string of emojis.
 
 <img width="934" alt="Screen Shot 2020-06-09 at 10 38 45 PM" src="https://user-images.githubusercontent.com/496914/84231198-72764980-aaa2-11ea-971d-fc4146a0dffc.png">
 
-
+More comprehensive benchmarks of multiple workers, different content sizes, requiring authorization would also be good to have. However, these are contrived and strictly meant to show the overhead of the protocol and serializers. 
 ### Coming Soon
 
 * Iterators
