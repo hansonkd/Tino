@@ -230,7 +230,8 @@ This is run with uvicorn as a single worker. `httpx` seemed to be a major point 
 
 `tino` client did not suffer the same fate and scaled to handle hundreds of thousands of tasks with ease. However, there were some slight performance gains from chaining together 10 processses of 10 connections.
 
-This is a micro benchmark of echoing a 1234 character unicode string of emojis.
+This is a micro benchmark of echoing a 1234 character unicode string of emojis. Each test, except the last, are ran with 6 workers on the server.
+
 <img width="1229" alt="Screen Shot 2020-06-10 at 12 54 54 AM" src="https://user-images.githubusercontent.com/496914/84242030-1c5ed180-aab5-11ea-9286-fc26df0f4d72.png">
 
 More comprehensive benchmarks of multiple workers, different content sizes, requiring authorization would also be good to have. However, these are contrived and strictly meant to show the overhead of the protocol and serializers. 
