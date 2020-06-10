@@ -14,6 +14,7 @@ Tradidtional APIs are JSON over HTTP. Tino is Msgpack over the Redis Serializati
 * Pydantic for automatically parsing rich datastructures
 * Fast. Up to 20x faster than the fastest HTTP Python framework.
 * Small. Under 500 lines of code.
+* Able to run multiple workers with uvicorn (more below)
 
 ### Does Tino use Redis?
 
@@ -205,6 +206,10 @@ async def create_note(note: NoteIn) -> Note:
 if __name__ == "__main__":
     app.run()
 ```
+
+### Uvicorn
+
+Tino is built on the popular ASGI server Uvicorn. Its still a bit of a work in progress as Tino is NOT an ASGI framework so we get some warnings, but things are working. See [run_tino_multi.py](https://github.com/hansonkd/Tino/blob/master/bench/run_tino_multi.py) for an example of passing Uvicorn arguments. SSL and `workers` are working but I wouldn't expect too many other config options to work.
 
 
 ### Should I use Tino in Production?
