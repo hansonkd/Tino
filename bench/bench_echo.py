@@ -109,7 +109,6 @@ complex_obj = ComplexModel(
 
 simple_string = "😊 😊 😊" * 100
 
-
 api = Tino()
 
 
@@ -167,6 +166,20 @@ async def simple_echo_client_tino_simple_concurrent(ntimes):
     client.close()
     await client.wait_closed()
 
+async def simple_echo_client_tino_complex_concurrent(ntimes):
+    client = client_class()
+    await client.connect(minsize=100, maxsize=100)
+    t1 = time.time()
+
+    futures = []
+    for _ in range(ntimes):
+        futures.append(client.tino_echo_complex(complex_obj))
+
+    await asyncio.gather(*futures)
+    return time.time() - t1
+    client.close()
+    await client.wait_closed()
+
 
 async def simple_echo_client_tino_complex(ntimes):
     client = client_class()
@@ -191,14 +204,57 @@ async def simple_echo_client_fapi_simple(ntimes):
 
 
 async def simple_echo_client_fapi_simple_concurrent(ntimes):
-    async with httpx.AsyncClient(timeout=300) as client:
-        t1 = time.time()
+    max_conns = 100
+    limits = httpx.PoolLimits(hard_limit=max_conns)
+    async with httpx.AsyncClient(timeout=600, pool_limits=limits) as client:
+        
 
+        futures = []
+        for _ in range(max_conns):
+            futures.append(
+                client.post(
+                    "http://localhost:9999/fapi/echo/simple", json=simple_string
+                )
+            )
+
+        await asyncio.gather(*futures)
+        print("warmed up")
+
+        t1 = time.time()
         futures = []
         for _ in range(ntimes):
             futures.append(
                 client.post(
                     "http://localhost:9999/fapi/echo/simple", json=simple_string
+                )
+            )
+
+        await asyncio.gather(*futures)
+
+        return time.time() - t1
+
+async def simple_echo_client_fapi_concurrent_concurrent(ntimes):
+    max_conns = 100
+    limits = httpx.PoolLimits(hard_limit=max_conns)
+    async with httpx.AsyncClient(timeout=600, pool_limits=limits) as client:
+
+        futures = []
+        for _ in range(max_conns):
+            futures.append(
+                client.post(
+                    "http://localhost:9999/fapi/echo/simple", json=simple_string
+                )
+            )
+
+        await asyncio.gather(*futures)
+        print("warmed up")
+
+        t1 = time.time()
+        futures = []
+        for _ in range(ntimes):
+            futures.append(
+                client.post(
+                    "http://localhost:9999/fapi/echo/complex", json=complex_obj.dict()
                 )
             )
 
@@ -218,29 +274,33 @@ async def simple_echo_client_fapi_complex(ntimes):
         return time.time() - t1
 
 
-NUM_TIMES = 100000
+NUM_TIMES = 100 * 1000
 NUM_CONCURRENT = multiprocessing.cpu_count()
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
+    import uvloop
+    # uvloop.install()
     if sys.argv[1] == "tino_client_simple":
-        print(loop.run_until_complete(simple_echo_client_tino_simple(NUM_TIMES)))
+        print(asyncio.run(simple_echo_client_tino_simple(NUM_TIMES)))
     elif sys.argv[1] == "tino_client_simple_concurrent":
-        print(loop.run_until_complete(simple_echo_client_tino_simple_concurrent(NUM_TIMES)))
+        print(asyncio.run(simple_echo_client_tino_simple_concurrent(NUM_TIMES)))
+    elif sys.argv[1] == "tino_client_complex_concurrent":
+        print(asyncio.run(simple_echo_client_tino_complex_concurrent(NUM_TIMES)))
     elif sys.argv[1] == "tino_client_complex":
-        print(loop.run_until_complete(simple_echo_client_tino_complex(NUM_TIMES)))
+        print(asyncio.run(simple_echo_client_tino_complex(NUM_TIMES)))
     elif sys.argv[1] == "tino_server":
-        api.run()
+        api.run(workers=2, host="localhost", port=7777)
     elif sys.argv[1] == "tino_server_uvloop":
         import uvloop
-
         uvloop.install()
-        api.run()
+        api.run(workers=2, host="localhost", port=7777)
     elif sys.argv[1] == "fapi_client_simple":
-        print(asyncio.run_until_complete(simple_echo_client_fapi_simple(NUM_TIMES)))
+        print(asyncio.run(simple_echo_client_fapi_simple(NUM_TIMES)))
     elif sys.argv[1] == "fapi_client_simple_concurrent":
-        print(asyncio.run_until_complete(simple_echo_client_fapi_simple_concurrent(NUM_TIMES)))
+        print(asyncio.run(simple_echo_client_fapi_simple_concurrent(NUM_TIMES)))
+    elif sys.argv[1] == "fapi_client_complex_concurrent":
+        print(asyncio.run(simple_echo_client_fapi_concurrent_concurrent(NUM_TIMES)))
     elif sys.argv[1] == "fapi_client_complex":
-        print(asyncio.run_until_complete(simple_echo_client_fapi_complex(NUM_TIMES)))
+        print(asyncio.run(simple_echo_client_fapi_complex(NUM_TIMES)))
     elif sys.argv[1] == "fapi_server":
         import uvicorn
 
@@ -248,4 +308,4 @@ if __name__ == "__main__":
     elif sys.argv[1] == "fapi_server_uvloop":
         import uvicorn
 
-        uvicorn.run(fapi, host="0.0.0.0", port=9999, loop="uvloop")
+        uvicorn.run(fapi, host="0.0.0.0", port=9999, loop="uvloop", log_level="error")
