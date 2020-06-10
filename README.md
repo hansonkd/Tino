@@ -12,8 +12,9 @@ Tradidtional APIs are JSON over HTTP. Tino is Msgpack over the Redis Serializati
 * Redis Protocol
 * MessagePack Serialization
 * Pydantic for automatically parsing rich datastructures
-* Fast. Up to 20x faster than the fastest HTTP Python framework.
+* Fast. Up to 10x faster than the fastest HTTP Python framework + client combination.
 * Small. Under 500 lines of code.
+* Able to run multiple workers with uvicorn (more below)
 
 ### Does Tino use Redis?
 
@@ -33,6 +34,12 @@ Tino was born after a long search to find an alternative to HTTP. The protocol i
 It is fast, can enable zero-copy string and bytes decoding, and the most important, it is [only an afternoon of hacking](https://medium.com/@hansonkd/building-beautiful-binary-parsers-in-elixir-1bd7f865bf17?source=friends_link&sk=6f7b440eb04ee81679c3ddfede9bab07) to get a serializer and parser going.
 
 MessagePack paired with RESP means that you can implement the entire stack, protocol and serialization, by yourself from scratch if you needed to without too much trouble. And it will be fast.
+
+
+### Uvicorn
+
+Tino is built on the popular ASGI server Uvicorn. Its still a bit of a work in progress as Tino is NOT an ASGI framework so we get some warnings, but things are working. See [run_tino_multi.py](https://github.com/hansonkd/Tino/blob/master/bench/run_tino_multi.py) for an example of passing Uvicorn arguments. SSL and `workers` are working but I wouldn't expect too many other config options to work.
+
 
 ### The Basics
 
@@ -206,16 +213,29 @@ if __name__ == "__main__":
     app.run()
 ```
 
-
 ### Should I use Tino in Production?
 
-Its not ready for public consumption at the moment, but if you want my help to run it, just drop me a line.
+Its not ready for public consumption at the moment, but if you want my help to run it, just drop me a line and we will make it happen.
+
 
 
 ### TLS Support
 
 Its probably easiest to deploy Tino behind a TCP loadbalancer that already supports TLS. You can pass in the `SSLContext` to the `client.connect` function as kwargs to the Redis connection pool.
 
+### Benchmarks
+
+This is run with uvicorn as a single worker. `httpx` seemed to be a major point of performance problems so I also benchmarked against `ab` (apache benchmark). However, `httpx` results are typical of what you would see if you were using python-to-python communication.
+
+`httpx` is abysmal at concurrent requests. Anything over a few thousand and it slows to a crawl. To test multiple connections, I instead chained together the single connection bench with the unix operator `&` to execute 100 scripts in parrellel. 
+
+`tino` client did not suffer the same fate and scaled to handle hundreds of thousands of tasks with ease. However, there were some slight performance gains from chaining together 10 processses of 10 connections.
+
+This is a micro benchmark of echoing a 1234 character unicode string of emojis. Each test, except the last, are ran with 6 workers on the server.
+
+<img width="1229" alt="Screen Shot 2020-06-10 at 12 54 54 AM" src="https://user-images.githubusercontent.com/496914/84242030-1c5ed180-aab5-11ea-9286-fc26df0f4d72.png">
+
+More comprehensive benchmarks of multiple workers, different content sizes, requiring authorization would also be good to have. However, these are contrived and strictly meant to show the overhead of the protocol and serializers. 
 ### Coming Soon
 
 * Iterators

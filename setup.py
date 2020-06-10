@@ -52,6 +52,7 @@ setup(
         "pydantic>=1.5.1",
         "msgpack>=1.0.0",
         "aioredis>=1.3.1",
+        "uvicorn>=0.11.5"
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
