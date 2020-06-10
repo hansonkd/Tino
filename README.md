@@ -221,6 +221,8 @@ Its probably easiest to deploy Tino behind a TCP loadbalancer that already suppo
 
 This is run with uvicorn as a single worker. `httpx` seemed to be a major point of performance problems so I also benchmarked against `ab` (apache benchmark). However, `httpx` results are typical of what you would see if you were using python-to-python communication.
 
+This is a micro benchmark of echoing a 404 character unicode string of emojis.
+
 <img width="934" alt="Screen Shot 2020-06-09 at 10 38 45 PM" src="https://user-images.githubusercontent.com/496914/84231198-72764980-aaa2-11ea-971d-fc4146a0dffc.png">
 
 
