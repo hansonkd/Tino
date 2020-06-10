@@ -212,9 +212,17 @@ if __name__ == "__main__":
 Its not ready for public consumption at the moment, but if you want my help to run it, just drop me a line.
 
 
+
 ### TLS Support
 
 Its probably easiest to deploy Tino behind a TCP loadbalancer that already supports TLS. You can pass in the `SSLContext` to the `client.connect` function as kwargs to the Redis connection pool.
+
+### Benchmarks
+
+This is run with uvicorn as a single worker. `httpx` seemed to be a major point of performance problems so I also benchmarked against `ab` (apache benchmark). However, `httpx` results are typical of what you would see if you were using python-to-python communication.
+
+<img width="934" alt="Screen Shot 2020-06-09 at 10 38 45 PM" src="https://user-images.githubusercontent.com/496914/84231198-72764980-aaa2-11ea-971d-fc4146a0dffc.png">
+
 
 ### Coming Soon
 
