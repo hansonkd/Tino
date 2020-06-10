@@ -154,7 +154,7 @@ async def simple_echo_client_tino_simple(ntimes):
 
 async def simple_echo_client_tino_simple_concurrent(ntimes):
     client = client_class()
-    await client.connect(minsize=10, maxsize=10)
+    await client.connect(minsize=100, maxsize=100)
     t1 = time.time()
 
     futures = []
@@ -165,6 +165,7 @@ async def simple_echo_client_tino_simple_concurrent(ntimes):
     return time.time() - t1
     client.close()
     await client.wait_closed()
+
 
 async def simple_echo_client_tino_complex_concurrent(ntimes):
     client = client_class()
@@ -207,7 +208,6 @@ async def simple_echo_client_fapi_simple_concurrent(ntimes):
     max_conns = 100
     limits = httpx.PoolLimits(hard_limit=max_conns)
     async with httpx.AsyncClient(timeout=600, pool_limits=limits) as client:
-        
 
         futures = []
         for _ in range(max_conns):
@@ -232,6 +232,7 @@ async def simple_echo_client_fapi_simple_concurrent(ntimes):
         await asyncio.gather(*futures)
 
         return time.time() - t1
+
 
 async def simple_echo_client_fapi_concurrent_concurrent(ntimes):
     max_conns = 100
@@ -274,10 +275,10 @@ async def simple_echo_client_fapi_complex(ntimes):
         return time.time() - t1
 
 
-NUM_TIMES = 10 * 1000
+NUM_TIMES = 100 * 1000
 NUM_CONCURRENT = multiprocessing.cpu_count()
 if __name__ == "__main__":
-    import uvloop
+    # import uvloop
     # uvloop.install()
     if sys.argv[1] == "tino_client_simple":
         print(asyncio.run(simple_echo_client_tino_simple(NUM_TIMES)))
@@ -291,6 +292,7 @@ if __name__ == "__main__":
         api.run(workers=2, host="localhost", port=7777)
     elif sys.argv[1] == "tino_server_uvloop":
         import uvloop
+
         uvloop.install()
         api.run(workers=2, host="localhost", port=7777)
     elif sys.argv[1] == "fapi_client_simple":
