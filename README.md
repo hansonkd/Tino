@@ -217,7 +217,7 @@ if __name__ == "__main__":
 
 ### Should I use Tino in Production?
 
-Its not ready for public consumption at the moment, but if you want my help to run it, just drop me a line and we will make it happen.
+Its not ready for public consumption at the moment, but if you want my help to run it, just drop me a line and we will make it happen. me at khanson dot io
 
 
 
