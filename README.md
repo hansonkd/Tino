@@ -1,5 +1,5 @@
 # Tino
-The fastest, cutest, little API you ever did see
+Tino: a one-of-a-kind, stupid fast, Python API using Redis Protocol and MsgPack
 
 ### What is Tino?
 

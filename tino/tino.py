@@ -168,30 +168,6 @@ class Tino:
             client.close()
             await client.wait_closed()
 
-    # async def start_server(self, loop=None, **kwargs):
-    #     server = await self.create_server(loop=loop, **kwargs)
-    #     for f in self.startup_funcs:
-    #         await f()
-    #     return server
-
-    # async def stop_server(self, server):
-    #     server.close()
-    #     await server.wait_closed()
-    #     for f in self.shutdown_funcs:
-    #         await f()
-
-    # def run(self, **kwargs):
-    #     loop = asyncio.get_event_loop()
-
-    #     server = loop.run_until_complete(self.start_server(loop=loop, **kwargs))
-    #     try:
-    #         loop.run_forever()
-    #     except KeyboardInterrupt:
-    #         pass
-
-    #     loop.run_until_complete(self.stop_server(server))
-    #     loop.close()
-
     def client(self):
         klass = make_client_class(self)
         return klass()
