@@ -7,7 +7,7 @@ Tino: a one-of-a-kind, stupid fast, Python API using Redis Protocol and MsgPack
 
 Tino is a framework to remotely call functions. It builds both clients and servers. 
 
-Tradidtional APIs are JSON over HTTP. Tino is Msgpack over the Redis Serialization Protocol. This makes it go faster, use less bandwidth, and its binary format easier to understand.
+Traditional APIs are JSON over HTTP. Tino is Msgpack over the Redis Serialization Protocol. This makes it go faster, use less bandwidth, and its binary format easier to understand.
 
 ### Highlights
 
