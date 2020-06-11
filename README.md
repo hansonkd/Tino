@@ -1,6 +1,8 @@
 # Tino
 Tino: a one-of-a-kind, stupid fast, Python API using Redis Protocol and MsgPack
 
+![tino](https://user-images.githubusercontent.com/496914/84339977-79f62b00-ab54-11ea-97b2-a8d1b74b07af.png)
+
 ### What is Tino?
 
 Tino is a framework to remotely call functions. It builds both clients and servers. 
