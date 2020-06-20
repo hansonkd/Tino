@@ -1,11 +1,13 @@
 # Tino
-Tino: a one-of-a-kind, stupid fast, Python API using Redis Protocol and MsgPack
+The one-of-a-kind, stupid fast, Python API using Redis Protocol and MsgPack
+
+![tino](https://user-images.githubusercontent.com/496914/84339977-79f62b00-ab54-11ea-97b2-a8d1b74b07af.png)
 
 ### What is Tino?
 
 Tino is a framework to remotely call functions. It builds both clients and servers. 
 
-Tradidtional APIs are JSON over HTTP. Tino is Msgpack over the Redis Serialization Protocol. This makes it go faster, use less bandwidth, and its binary format easier to understand.
+Traditional APIs are JSON over HTTP. Tino is Msgpack over the Redis Serialization Protocol. This makes it go faster, use less bandwidth, and its binary format easier to understand.
 
 ### Highlights
 
@@ -39,6 +41,10 @@ MessagePack paired with RESP means that you can implement the entire stack, prot
 ### Uvicorn
 
 Tino is built on the popular ASGI server Uvicorn. Its still a bit of a work in progress as Tino is NOT an ASGI framework so we get some warnings, but things are working. See [run_tino_multi.py](https://github.com/hansonkd/Tino/blob/master/bench/run_tino_multi.py) for an example of passing Uvicorn arguments. SSL and `workers` are working but I wouldn't expect too many other config options to work.
+
+### Why not ProtocolBuffers, CapnProto, etc.
+
+Most other protocols that you have to generate are much much much more complex and thus are not widely implemented. The support of individual languages is iffy too. By choosing a simple protocol and simple serialization, we have ensured that we have a client in nearly language as nearly every language has a Redis client and MsgPack library.
 
 
 ### The Basics
@@ -215,7 +221,7 @@ if __name__ == "__main__":
 
 ### Should I use Tino in Production?
 
-Its not ready for public consumption at the moment, but if you want my help to run it, just drop me a line and we will make it happen.
+Its not ready for public consumption at the moment, but if you want my help to run it, just drop me a line and we will make it happen. me at khanson dot io
 
 
 
