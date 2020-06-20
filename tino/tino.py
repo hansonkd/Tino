@@ -6,7 +6,6 @@ import json
 import logging
 from contextlib import asynccontextmanager
 
-from pydantic import ValidationError
 from pydantic.tools import parse_obj_as
 
 from aioredis import create_redis_pool
@@ -17,7 +16,7 @@ from .special_args import Auth, AuthRequired, ConnState
 from .server import Server
 from .config import Config
 from .serializer import pack_msgpack, default
-from .protocol import BUILT_IN_COMMANDS, write_permission_denied
+from .protocol import BUILT_IN_COMMANDS, COMMAND_SUBSCRIBE, write_permission_denied
 
 
 class Command:
@@ -33,67 +32,6 @@ class Command:
         )
         self.handler = handler
         self.return_type = return_type
-
-    async def execute(self, redis_list, writer, state, auth, packer):
-        try:
-            args = []
-            if len(redis_list) != self.num_args:
-                writer.write(b"-NUM_ARG_MISMATCH\r\n")
-                await writer.drain()
-                return True
-
-            pos = 0
-            for (arg_name, arg_type) in self.signature:
-                if arg_type == Auth:
-                    args.append(auth)
-                    continue
-                elif arg_type == AuthRequired:
-                    if not auth.value:
-                        await write_permission_denied(writer)
-                        return True
-                    args.append(AuthRequired(auth.value))
-                    continue
-                elif arg_type == ConnState:
-                    args.append(state)
-                    continue
-
-                redis_value = redis_list[pos]
-                pos += 1
-
-                try:
-                    raw_value = msgpack.unpackb(redis_value)
-                except msgpack.UnpackException as e:
-                    loc = json.dumps(["command", arg_name])
-                    msg = json.dumps("invalid msgpack")
-                    writer.write(f"-INVALID_MSGPACK {loc} {msg}\r\n".encode("utf8"))
-                    await writer.drain()
-                    return True
-
-                try:
-                    obj = parse_obj_as(arg_type, raw_value)
-                except ValidationError as e:
-                    err = e.errors()[0]
-                    loc = json.dumps(("command", arg_name) + err["loc"][1:])
-                    msg = json.dumps(err["msg"])
-                    t = json.dumps(err["type"])
-                    writer.write(
-                        f"-VALIDATION_ERROR {loc} {msg} {t}\r\n".encode("utf8")
-                    )
-                    await writer.drain()
-                    return True
-                args.append(obj)
-
-            result = await self.handler(*args)
-            to_send = pack_msgpack(packer, result)
-            writer.write(b"$%d\r\n%b\r\n" % (len(to_send), to_send))
-            await writer.drain()
-            return False
-        except Exception as e:
-            msg = json.dumps(str(e))
-            writer.write(f"-UNEXPECTED_ERROR {msg}\r\n".encode("utf8"))
-            await writer.drain()
-
-            raise e
 
 
 class Tino:

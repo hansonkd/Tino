@@ -1,5 +1,4 @@
 import uvicorn
-import functools
 
 from .protocol import protocol_factory
 

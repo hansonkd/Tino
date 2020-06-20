@@ -2,7 +2,12 @@ from aioredis.parser import Reader
 from aioredis.stream import StreamReader
 from asyncio.streams import StreamReaderProtocol
 import msgpack
-from .serializer import default
+import json
+from pydantic import ValidationError
+from pydantic.tools import parse_obj_as
+
+
+from .serializer import default, pack_msgpack
 
 
 from .special_args import Auth, AuthRequired, ConnState
@@ -13,7 +18,11 @@ COMMAND_PING = b"PING"
 PONG = b"+PONG\r\n"
 COMMAND_QUIT = b"QUIT"
 COMMAND_AUTH = b"AUTH"
-BUILT_IN_COMMANDS = (COMMAND_PING, COMMAND_QUIT, COMMAND_AUTH)
+COMMAND_SUBSCRIBE = b"SUBSCRIBE"
+COMMAND_ITER = b"ITER"
+COMMAND_NEXT = b"NEXT"
+COMMAND_SEND = b"SEND"
+BUILT_IN_COMMANDS = (COMMAND_PING, COMMAND_QUIT, COMMAND_AUTH, COMMAND_SUBSCRIBE)
 
 
 async def write_permission_denied(writer):
@@ -60,22 +69,86 @@ class TinoHandler:
                         auth.value = None
                         await write_permission_denied(writer)
                         break
+                else:
+                    try:
+                        command = self.config.loaded_app.commands[incoming_command]
+                    except KeyError:
+                        writer.write(b"-INVALID_COMMAND %b\r\n" % incoming_command)
+                        await writer.drain()
+                        break
 
-                try:
-                    command = self.config.loaded_app.commands[incoming_command]
-                except KeyError:
-                    writer.write(b"-INVALID_COMMAND %b\r\n" % incoming_command)
-                    await writer.drain()
-                    break
-
-                should_break = await command.execute(
-                    data[1:], writer, state, auth, self.packer
-                )
-                if should_break:
-                    break
+                    should_break = await self.execute(
+                        command, data[1:], writer, state, auth, self.packer
+                    )
+                    if should_break:
+                        break
         finally:
             writer.close()
             await writer.wait_closed()
+
+    async def build_args(self, command, redis_list, writer, state, auth):
+        args = []
+        if len(redis_list) != command.num_args:
+            writer.write(b"-NUM_ARG_MISMATCH\r\n")
+            await writer.drain()
+            return None
+
+        pos = 0
+        for (arg_name, arg_type) in command.signature:
+            if arg_type == Auth:
+                args.append(auth)
+                continue
+            elif arg_type == AuthRequired:
+                if not auth.value:
+                    await write_permission_denied(writer)
+                    return None
+                args.append(AuthRequired(auth.value))
+                continue
+            elif arg_type == ConnState:
+                args.append(state)
+                continue
+
+            redis_value = redis_list[pos]
+            pos += 1
+
+            try:
+                raw_value = msgpack.unpackb(redis_value)
+            except msgpack.UnpackException as e:
+                loc = json.dumps(["command", arg_name])
+                msg = json.dumps("invalid msgpack")
+                writer.write(f"-INVALID_MSGPACK {loc} {msg}\r\n".encode("utf8"))
+                await writer.drain()
+                return None
+
+            try:
+                obj = parse_obj_as(arg_type, raw_value)
+            except ValidationError as e:
+                err = e.errors()[0]
+                loc = json.dumps(("command", arg_name) + err["loc"][1:])
+                msg = json.dumps(err["msg"])
+                t = json.dumps(err["type"])
+                writer.write(f"-VALIDATION_ERROR {loc} {msg} {t}\r\n".encode("utf8"))
+                await writer.drain()
+                return None
+            args.append(obj)
+        return args
+
+    async def execute(self, command, redis_list, writer, state, auth, packer):
+        try:
+            args = await self.build_args(command, redis_list, writer, state, auth)
+            if not args:
+                return True
+            result = await command.handler(*args)
+
+            to_send = pack_msgpack(packer, result)
+            writer.write(b"$%d\r\n%b\r\n" % (len(to_send), to_send))
+            await writer.drain()
+            return False
+        except Exception as e:
+            msg = json.dumps(str(e))
+            writer.write(f"-UNEXPECTED_ERROR {msg}\r\n".encode("utf8"))
+            await writer.drain()
+            raise e
 
 
 def protocol_factory(config, server_state, loop=None):
